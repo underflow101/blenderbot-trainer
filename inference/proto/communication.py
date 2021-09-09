@@ -1,13 +1,8 @@
-import websocket
-# try:
-#     import thread
-# except ImportError:
-#     import _thread as thread
 import os, sys, threading, time
-from datetime import datetime
-from collections import deque
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from message_queue import eagleMQ, commMQ
+
+import websocket
+
+from message_queue import receiveMQ, sendMQ
 from configuration import *
 
 class CommSocket(threading.Thread):
@@ -16,40 +11,37 @@ class CommSocket(threading.Thread):
         websocket.enableTrace(True)
         self.signal_run = False
         self.agent_connected = False
-        self.eaglemq = eagleMQ()
-        self.commMq = commMQ()
+        self.receiveMq = receiveMQ()
+        self.sendMq = sendMQ()
         self.error = None
         
-    def push_back_msg(self, msg):
+    def push_msg_to_socket(self, msg):
         print("[WS] Input message:", msg)
         print("[WS] Pushing msg to socket...")
         self.ws.send(msg)
     
-    def on_message(self, ws, message):
+    def on_message(self, message):
         print("[WS] Message received:", message)
-        # self.ws.send("Received Well.")
-        self.eaglemq.append_msg(message)
-        if message == OP_OFF:
-            self.ws.send("ai off")
+        self.receiveMq.append_msg(message)
     
-    def on_open(self, ws):
+    def on_open(self):
         print("[WS] Socket connected")
         self.agent_connected = True
     
-    def on_close(self, ws):
+    def on_close(self):
         print("[WS] Socket disconnected")
         self.agent_connected = False
     
-    def on_error(self, ws, error):
+    def on_error(self, error):
         print("[WS] [ERROR] Disconnected. Error:", error)
         self.error = error
     
     def run_socket(self):
         def run(*args):
             while True:
-                if self.commMq.q:
+                if self.sendMq.q:
                     print("[WS] Comm received message(s).")
-                    self.push_back_msg(self.commMq.pop_msg())
+                    self.push_msg_to_socket(self.sendMq.pop_msg())
                 if self.error != None:
                     print("[WS] Error occurred:", self.error)
                     self.error = None
