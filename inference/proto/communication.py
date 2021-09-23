@@ -8,31 +8,35 @@ from configuration import *
 class CommSocket(threading.Thread):
     def __init__(self):
         super().__init__()
-        websocket.enableTrace(True)
+        websocket.enableTrace(False)
         self.signal_run = False
         self.agent_connected = False
         self.receiveMq = receiveMQ()
         self.sendMq = sendMQ()
         self.error = None
         
-    def push_msg_to_socket(self, msg):
+    def push_msg_to_socket(self, ws, msg):
         print("[WS] Input message:", msg)
         print("[WS] Pushing msg to socket...")
         self.ws.send(msg)
     
-    def on_message(self, message):
+    def on_message(self, ws, message):
         print("[WS] Message received:", message)
         self.receiveMq.append_msg(message)
     
-    def on_open(self):
+    def on_open(self, ws):
         print("[WS] Socket connected")
+        self.ws.send("hey :D 1")
+        self.ws.send("hey :D 2")
+        self.ws.send("hey :D 3")
+        
         self.agent_connected = True
     
-    def on_close(self):
+    def on_close(self, ws, close_status_code, close_msg):
         print("[WS] Socket disconnected")
         self.agent_connected = False
     
-    def on_error(self, error):
+    def on_error(self, ws, error):
         print("[WS] [ERROR] Disconnected. Error:", error)
         self.error = error
     
