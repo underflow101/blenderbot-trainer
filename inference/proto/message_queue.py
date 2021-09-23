@@ -13,7 +13,7 @@ from collections import deque
 class receiveMQ:
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, "_instance"):
-            print("[MQ] New eagleMQ created.")
+            print("[MQ] New receiveMQ created.")
             cls._instance = super().__new__(cls)
         return cls._instance
     
@@ -37,7 +37,7 @@ class receiveMQ:
 class sendMQ:
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, "_instance"):
-            print("[MQ] New commMQ created.")
+            print("[MQ] New sendMQ created.")
             cls._instance = super().__new__(cls)
         return cls._instance
     
